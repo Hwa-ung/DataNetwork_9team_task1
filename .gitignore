@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pem
+logs/
+.vscode/
+.claude/
+*.png
+*.pdf
+node_modules/
