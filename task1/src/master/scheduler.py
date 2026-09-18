@@ -6,7 +6,8 @@ from common.constants import QUEUE_MAX, NUM_KV
 
 class Scheduler:
     def __init__(self, sessions, tasks, kv_store, fault_handler,
-                 result_queue, result_event, clock, logger, num_kv=NUM_KV):
+                 result_queue, result_event, clock, logger, num_kv=NUM_KV,
+                 lb_demo=False):
         self.sessions = sessions
         self.session_map = {s.worker_id: s for s in sessions}
         self.pending = collections.deque(tasks)
@@ -21,6 +22,7 @@ class Scheduler:
         self.in_progress = {}
         self.total_p2p_events = 0
         self._last_progress = 0
+        self._demo_remaining = 40 if lb_demo else 0
 
     def run(self):
         while len(self.kv_store) < self.num_kv:
@@ -42,8 +44,7 @@ class Scheduler:
             target = self._pick_target()
             if target is None:
                 if task.priority or task.retry > 0:
-                    self.fault_handler.push(task)
-                    self.fault_handler.total_requeues -= 1  # undo double count
+                    self.fault_handler.put_back(task)
                 else:
                     self.pending.appendleft(task)
                 self._drain_results()
@@ -65,11 +66,18 @@ class Scheduler:
         self._drain_results()
 
     def _pick_target(self):
+        # lb-demo: bias initial tasks to Worker1 to trigger P2P
+        if self._demo_remaining > 0:
+            w1 = self.sessions[0]
+            if w1.estimated_queue < QUEUE_MAX:
+                self._demo_remaining -= 1
+                return w1
+
         candidates = [s for s in self.sessions if s.estimated_queue < QUEUE_MAX]
         if not candidates:
             return None
         # Fairness cap: don't dispatch to a worker that's too far ahead
-        min_dispatched = min(s.stats.dispatched for s in self.sessions)
+        min_dispatched = min(s.stats.dispatched for s in candidates)
         fair = [s for s in candidates if s.stats.dispatched < min_dispatched + 5]
         if not fair:
             return None  # wait for lagging workers to free up

@@ -40,6 +40,8 @@ def main():
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--num-kv", type=int, default=None)
     parser.add_argument("--log-dir", type=str, default=None)
+    parser.add_argument("--lb-demo", action="store_true",
+                        help="Bias initial tasks to Worker1 to trigger P2P LB")
     args = parser.parse_args()
 
     config = load_config(args)
@@ -94,7 +96,8 @@ def main():
     fault_handler = PriorityRequeue()
     scheduler = Scheduler(
         sessions, kv_pairs, kv_store, fault_handler,
-        result_queue, result_event, clock, logger, num_kv
+        result_queue, result_event, clock, logger, num_kv,
+        lb_demo=args.lb_demo
     )
     scheduler.run()
 
