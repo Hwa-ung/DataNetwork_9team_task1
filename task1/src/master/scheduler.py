@@ -68,7 +68,12 @@ class Scheduler:
         candidates = [s for s in self.sessions if s.estimated_queue < QUEUE_MAX]
         if not candidates:
             return None
-        return min(candidates, key=lambda s: (s.estimated_queue, s.stats.dispatched))
+        # Fairness cap: don't dispatch to a worker that's too far ahead
+        min_dispatched = min(s.stats.dispatched for s in self.sessions)
+        fair = [s for s in candidates if s.stats.dispatched < min_dispatched + 5]
+        if not fair:
+            return None  # wait for lagging workers to free up
+        return min(fair, key=lambda s: (s.stats.dispatched, s.estimated_queue))
 
     def _drain_results(self):
         while True:
