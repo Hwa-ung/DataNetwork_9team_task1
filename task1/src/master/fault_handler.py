@@ -15,6 +15,11 @@ class PriorityRequeue:
             heapq.heappush(self._heap, (-task.retry, task.seq, task))
             self.total_requeues += 1
 
+    def put_back(self, task):
+        """Re-insert without incrementing retry (task was not dispatched)"""
+        with self._lock:
+            heapq.heappush(self._heap, (-task.retry, task.seq, task))
+
     def pop(self):
         with self._lock:
             if self._heap:

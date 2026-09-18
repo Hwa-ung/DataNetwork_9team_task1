@@ -2,6 +2,7 @@ import os
 import random
 import socket
 import threading
+import time
 
 from common.constants import (
     QUEUE_MAX, AVG_PROC_TIME, LB_THRESHOLD,
@@ -194,6 +195,9 @@ class WorkerNode(threading.Thread):
                 "clock": self.clock.stamp_send(),
             }
             send_msg(self.sock, result, self.send_lock)
+
+            # Brief yield to let MasterReceiver thread enqueue incoming tasks
+            time.sleep(0.005)
 
             # P2P load balancing check
             if self.clock.now() >= next_lb_check:

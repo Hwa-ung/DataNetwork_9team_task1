@@ -12,9 +12,9 @@ NET_LATENCY       = 1.0              # Master-Worker 통신 지연 (가상)
 P2P_LATENCY       = 0.1              # Worker 간 P2P 지연 (같은 로컬 PC)
 
 AVG_PROC_TIME     = 2.0              # P2P 계산용
-LB_THRESHOLD      = 6.0              # 예상 대기 임계값 (queue 4+ triggers P2P)
-LB_CHECK_MIN      = 5.0
-LB_CHECK_MAX      = 10.0
+LB_THRESHOLD      = 15.0             # 예상 대기 임계값 (queue 8+ triggers P2P)
+LB_CHECK_MIN      = 1.0
+LB_CHECK_MAX      = 3.0
 
 NUM_WORKERS       = 4
 P2P_PORT_BASE     = 9100             # Worker N -> 9100+N
