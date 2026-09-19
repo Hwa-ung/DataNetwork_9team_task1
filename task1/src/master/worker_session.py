@@ -45,6 +45,9 @@ class WorkerSession:
     def adjust_queue(self, delta):
         self.last_known_queue = max(0, self.last_known_queue + delta)
 
+    def adjust_in_flight(self, delta):
+        self.in_flight = max(0, self.in_flight + delta)
+
     def send(self, msg):
         send_msg(self.sock, msg, self.send_lock)
 
