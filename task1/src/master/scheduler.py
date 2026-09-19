@@ -149,8 +149,10 @@ class Scheduler:
         to_s = self.session_map.get(to_w)
         if from_s:
             from_s.adjust_queue(-count)
+            from_s.adjust_in_flight(-count)
         if to_s:
             to_s.adjust_queue(count)
+            to_s.adjust_in_flight(count)
 
         self.total_p2p_events += 1
         self.logger.info(
