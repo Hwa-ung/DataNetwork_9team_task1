@@ -1,7 +1,0 @@
-{
-  "master_ip": "127.0.0.1",
-  "master_port": 9000,
-  "num_kv": 5000,
-  "num_workers": 4,
-  "p2p_port_base": 9100
-}
