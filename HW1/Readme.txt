@@ -51,64 +51,174 @@
   [필수 환경]
   - Python 3.13 이상 (표준 라이브러리만 사용, 별도 패키지 설치 불필요)
   - 컴파일 불필요 (인터프리터 언어)
-
-  [Master 실행 - EC2 서버]
-  $ cd src
-  $ python3 -m master.main --port 9000 --num-kv 5000 --log-dir ../logs
-
-  [Worker 실행 - 로컬 PC]
-  $ cd src
-  $ python -m worker.main --master-ip <EC2_PUBLIC_IP> --master-port 9000 \
-                           --log-dir ../logs
-
-  [localhost 테스트 (Master/Worker 모두 로컬)]
-  터미널 1: python3 -m master.main --port 9000 --log-dir ../logs
-  터미널 2: python -m worker.main --master-ip 127.0.0.1 --master-port 9000 \
-                                   --log-dir ../logs
+  - Master용 클라우드 서버 1대 (AWS EC2 / GCP 등)
+  - Worker용 로컬 PC 1대
 
   [명령행 인자]
   Master:
-    --port        리스닝 포트 (기본: 9000)
-    --num-kv      KV 쌍 개수 (기본: 5000)
-    --log-dir     로그 출력 디렉터리 (기본: ./logs)
+    --port          리스닝 포트 (기본: 9000)
+    --num-kv        KV 쌍 개수 (기본: 5000)
+    --log-dir       로그 출력 디렉터리 (기본: ./logs)
+    --lb-demo       P2P 부하 분산 시연 모드 (초기 작업을 Worker1에 집중)
 
   Worker:
-    --master-ip   Master IP 주소
-    --master-port Master 포트 (기본: 9000)
-    --num-workers Worker 스레드 수 (기본: 4)
+    --master-ip     Master IP 주소 (기본: 127.0.0.1)
+    --master-port   Master 포트 (기본: 9000)
+    --num-workers   Worker 스레드 수 (기본: 4)
     --p2p-port-base P2P 포트 시작번호 (기본: 9100, Worker N -> 9100+N)
-    --log-dir     로그 출력 디렉터리 (기본: ./logs)
+    --log-dir       로그 출력 디렉터리 (기본: ./logs)
+
+  설정 파일(src/config.json)로도 동일한 값을 지정할 수 있으며,
+  명령행 인자가 설정 파일보다 우선한다.
 
 
 4. 프로그램 실행 환경 및 실행 방법
 --------------------------------------------------------------------------------
-  [실행 환경]
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  4-1. 새 환경에서 처음부터 설정하기 (처음 실행하는 경우)       │
+  └─────────────────────────────────────────────────────────────────┘
+
+  [STEP 1] 클라우드 서버 준비 (Master Node용)
+
+    AWS EC2 기준:
+    1) AWS 콘솔 -> EC2 -> 인스턴스 시작
+       - AMI: Ubuntu 22.04 LTS 이상
+       - 인스턴스 유형: t2.micro (프리티어 가능)
+       - 키 페어(.pem) 생성 및 다운로드
+    2) 보안 그룹 인바운드 규칙 추가:
+       - TCP 22번 포트: SSH 접속용 (소스: 내 IP)
+       - TCP 9000번 포트: Master 소켓용 (소스: 0.0.0.0/0)
+    3) 인스턴스 시작 후 공인 IP(Public IP) 확인
+       (탄력적 IP 할당 시 재부팅해도 IP 고정)
+
+  [STEP 2] EC2 서버 초기 설정
+
+    # 로컬 PC에서 SSH 접속
+    $ ssh -i <키페어>.pem ubuntu@<EC2_PUBLIC_IP>
+
+    # Python 버전 확인 (Ubuntu 22.04는 기본 탑재)
+    $ python3 --version
+
+    # tmux 설치 (SSH 끊겨도 프로세스 유지용)
+    $ sudo apt update && sudo apt install -y tmux
+
+    # 소스코드 저장할 디렉터리 생성
+    $ mkdir -p ~/hw1
+
+  [STEP 3] 소스코드 업로드
+
+    # 로컬 PC에서 실행 (EC2에 소스 전송)
+    $ scp -i <키페어>.pem -r HW1/src/ ubuntu@<EC2_PUBLIC_IP>:~/hw1/src/
+
+  [STEP 4] 로컬 PC 준비
+
+    Python 3.13 이상이 설치되어 있으면 별도 설정 불필요.
+    외부 패키지 없이 표준 라이브러리만 사용한다.
+
+    # Python 버전 확인
+    $ python --version       # Windows
+    $ python3 --version      # macOS/Linux
+
+  [STEP 5] 연결 테스트
+
+    # 로컬에서 EC2 포트 도달 확인
+    $ telnet <EC2_PUBLIC_IP> 9000            # Linux/macOS
+    $ Test-NetConnection <EC2_PUBLIC_IP> -Port 9000   # Windows PowerShell
+
+    연결이 안 되면 보안 그룹 인바운드 규칙을 다시 확인한다.
+
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  4-2. 실행 방법 (EC2 + 로컬 PC)                               │
+  └─────────────────────────────────────────────────────────────────┘
+
+  [실행 환경 (본 조 기준)]
   - Master: AWS EC2 (eu-north-1), Ubuntu, Python 3.14
   - Worker: Windows 11, Python 3.13
   - 네트워크: TCP Socket (포트 9000 - Master, 9101~9104 - P2P)
 
   [실행 순서]
+
   1) EC2에 SSH 접속 후 tmux 세션 생성
-     $ ssh -i HaEeee.pem ubuntu@<EC2_IP>
+     $ ssh -i <키페어>.pem ubuntu@<EC2_PUBLIC_IP>
      $ tmux new -s master
 
   2) Master 실행
      $ cd ~/hw1/src
      $ python3 -m master.main --port 9000 --num-kv 5000 --log-dir ../logs
-     (Master가 Worker 4개 연결을 대기)
+     → Master가 "Listening on 0.0.0.0:9000, waiting for 4 workers..." 출력 후
+       Worker 4개 연결을 대기한다.
 
-  3) 로컬 PC에서 Worker 실행
-     $ cd src
-     $ python -m worker.main --master-ip <EC2_IP> --master-port 9000 \
+  3) 로컬 PC에서 Worker 실행 (새 터미널)
+     $ cd HW1/src
+     $ python -m worker.main --master-ip <EC2_PUBLIC_IP> --master-port 9000 \
                               --log-dir ../logs
-     (Worker 4개 Thread가 자동 생성되어 Master에 연결)
+     → Worker 4개 Thread가 자동 생성되어 Master에 TCP 연결된다.
+     → 연결 완료 시 Master/Worker 양쪽에 CONNECT SUCCESS 로그가 출력된다.
 
-  4) 5,000건 처리 완료 후 자동 종료
-     - logs/ 디렉터리에 Master.txt, Worker1~4.txt 생성
+  4) 처리 진행
+     → 5,000개 KV 쌍이 Worker들에 분배되고 처리된다.
+     → 실패한 작업은 자동으로 Priority Queue를 통해 재할당된다.
+     → P2P 부하 분산이 필요 시 자동으로 트리거된다.
 
-  [EC2 보안 그룹 설정]
-  - TCP 9000번 포트: 인바운드 허용 (0.0.0.0/0)
-  - TCP 22번 포트: SSH 접속용
+  5) 완료 및 종료
+     → 5,000건 모두 SUCCESS 처리되면 Master가 TERMINATE 전송.
+     → Worker가 BYE 응답 후 모든 프로세스가 자동 종료된다.
+     → logs/ 디렉터리에 로그 파일 5종 생성:
+        Master.txt, Worker1.txt, Worker2.txt, Worker3.txt, Worker4.txt
+
+  [P2P 시연 모드]
+  P2P 부하 분산 동작을 확실히 보려면 Master에 --lb-demo 추가:
+     $ python3 -m master.main --port 9000 --num-kv 5000 --log-dir ../logs --lb-demo
+  → 초기 40개 작업이 Worker1에 집중되어 P2P가 자연스럽게 발생한다.
+
+  [tmux 사용법 (참고)]
+  - SSH 끊겨도 Master 프로세스 유지됨
+  - 재접속 후 tmux attach -t master 로 세션 복귀
+  - Ctrl+B, D 로 세션 분리 (프로세스는 계속 실행)
+
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  4-3. localhost 테스트 (Master/Worker 모두 로컬)               │
+  └─────────────────────────────────────────────────────────────────┘
+
+  EC2 없이 로컬에서 전체 동작을 검증할 수 있다.
+
+  # 터미널 1: Master 실행
+  $ cd HW1/src
+  $ python -m master.main --port 9000 --log-dir ../logs
+
+  # 터미널 2: Worker 실행
+  $ cd HW1/src
+  $ python -m worker.main --master-ip 127.0.0.1 --master-port 9000 \
+                           --log-dir ../logs
+
+  소규모 테스트 시 --num-kv 50 으로 줄여서 빠르게 확인 가능:
+  $ python -m master.main --port 9000 --num-kv 50 --log-dir ../logs
+
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  4-4. 문제 해결 (Troubleshooting)                              │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Q: Worker가 Master에 연결 실패 (Connection refused)
+  A: 1) Master가 먼저 실행 중인지 확인
+     2) EC2 보안 그룹에서 TCP 9000 인바운드 허용 확인
+     3) Master IP 주소가 정확한지 확인 (공인 IP 사용)
+
+  Q: 포트가 이미 사용 중 (Address already in use)
+  A: 이전 실행이 완전히 종료되지 않은 경우 발생.
+     EC2: $ pkill -f "python3 -m master"
+     로컬: $ taskkill /F /IM python.exe  (Windows)
+
+  Q: P2P 부하 분산이 발생하지 않음
+  A: 스케줄러가 작업을 균등 분배하면 큐가 8개 이상 쌓이지 않아
+     P2P 임계값(15초)에 도달하지 못할 수 있다.
+     --lb-demo 플래그를 사용하면 P2P가 확실히 트리거된다.
+
+  Q: SSH 접속이 끊기면 Master가 종료됨
+  A: tmux 안에서 실행해야 한다. tmux new -s master 후 실행.
 
 
 5. 동적 작업 분배 알고리즘 설명
