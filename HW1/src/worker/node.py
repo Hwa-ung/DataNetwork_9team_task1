@@ -306,17 +306,20 @@ class WorkerNode(threading.Thread):
 
     def _print_stats(self):
         s = self.stats
-        self.logger.info("STAT", "=" * 50)
+        SEP = "=" * 90
+        DIV = "-" * 90
+        self.logger.info("STAT", SEP)
         self.logger.info("STAT", f"Worker{self.worker_id} FINAL STATISTICS")
-        self.logger.info("STAT", "=" * 50)
-        self.logger.info("STAT", f"[1] Tasks received      : {s.received}")
-        self.logger.info("STAT", f"[2] Tasks processed     : {s.processed}")
-        self.logger.info("STAT", f"    SUCCESS             : {s.success}")
-        self.logger.info("STAT", f"    FAIL                : {s.fail}")
-        self.logger.info("STAT", f"    REJECT              : {s.reject}")
-        self.logger.info("STAT", f"[3] Avg wait time       : {s.avg_wait_time:.2f} sec")
-        self.logger.info("STAT", f"[4] P2P sent            : {s.p2p_sent}")
-        self.logger.info("STAT", f"    P2P received        : {s.p2p_received}")
-        self.logger.info("STAT", f"    P2P queries         : {s.p2p_queries}")
-        self.logger.info("STAT", f"[5] Total elapsed time  : {self.clock.now():.2f} sec (System Clock)")
-        self.logger.info("STAT", "=" * 50)
+        self.logger.info("STAT", SEP)
+        self.logger.info("STAT", f"[1] Tasks processed          : {s.processed}")
+        self.logger.info("STAT", f"[2] SUCCESS                  : {s.success}")
+        self.logger.info("STAT", f"    FAIL                     : {s.fail}")
+        self.logger.info("STAT", f"    REJECT                   : {s.reject}")
+        self.logger.info("STAT", f"[3] Avg wait time            : {s.avg_wait_time:.2f} sec")
+        self.logger.info("STAT", DIV)
+        self.logger.info("STAT", f"[4] P2P sent                 : {s.p2p_sent}")
+        self.logger.info("STAT", f"    P2P received             : {s.p2p_received}")
+        self.logger.info("STAT", f"    P2P queries              : {s.p2p_queries}")
+        self.logger.info("STAT", f"[5] Tasks received           : {s.received}")
+        self.logger.info("STAT", f"[6] Total elapsed time       : {self.clock.now():.2f} sec (System Clock)")
+        self.logger.info("STAT", SEP)
