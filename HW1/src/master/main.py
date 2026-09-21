@@ -105,12 +105,12 @@ def main():
 
     for s in sessions:
         s.send({"type": "TERMINATE", "clock": clock.stamp_send()})
-    logger.info("TERMINATE", "Sent TERMINATE to all workers")
+    logger.raw("Sent TERMINATE to all workers")
 
     for s in sessions:
         s.wait_bye(timeout=10)
 
-    logger.success("TERMINATE", "All workers terminated. Master shutting down.")
+    logger.raw("All workers terminated. Master shutting down.")
 
     for s in sessions:
         s.close()

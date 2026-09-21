@@ -72,7 +72,7 @@ class MasterReceiver(threading.Thread):
                     )
 
             elif msg["type"] == "TERMINATE":
-                self.logger.info("TERMINATE", "Received TERMINATE from Master")
+                self.logger.raw("Received TERMINATE from Master")
                 self.terminate_event.set()
                 self.ready_queue.wakeup()
                 break
@@ -218,7 +218,7 @@ class WorkerNode(threading.Thread):
         except Exception:
             pass
 
-        self.logger.success("TERMINATE", f"Worker{self.worker_id} terminated gracefully.")
+        self.logger.raw(f"Worker{self.worker_id} terminated gracefully.")
 
         p2p_server.stop()
         try:
@@ -308,18 +308,18 @@ class WorkerNode(threading.Thread):
         s = self.stats
         SEP = "=" * 90
         DIV = "-" * 90
-        self.logger.info("STAT", SEP)
-        self.logger.info("STAT", f"Worker{self.worker_id} FINAL STATISTICS")
-        self.logger.info("STAT", SEP)
-        self.logger.info("STAT", f"[1] Tasks processed          : {s.processed}")
-        self.logger.info("STAT", f"[2] SUCCESS                  : {s.success}")
-        self.logger.info("STAT", f"    FAIL                     : {s.fail}")
-        self.logger.info("STAT", f"    REJECT                   : {s.reject}")
-        self.logger.info("STAT", f"[3] Avg wait time            : {s.avg_wait_time:.2f} sec")
-        self.logger.info("STAT", DIV)
-        self.logger.info("STAT", f"[4] P2P sent                 : {s.p2p_sent}")
-        self.logger.info("STAT", f"    P2P received             : {s.p2p_received}")
-        self.logger.info("STAT", f"    P2P queries              : {s.p2p_queries}")
-        self.logger.info("STAT", f"[5] Tasks received           : {s.received}")
-        self.logger.info("STAT", f"[6] Total elapsed time       : {self.clock.now():.2f} sec (System Clock)")
-        self.logger.info("STAT", SEP)
+        self.logger.raw(SEP)
+        self.logger.raw(f"Worker{self.worker_id} FINAL STATISTICS")
+        self.logger.raw(SEP)
+        self.logger.raw(f"[1] Tasks processed          : {s.processed}")
+        self.logger.raw(f"[2] SUCCESS                  : {s.success}")
+        self.logger.raw(f"    FAIL                     : {s.fail}")
+        self.logger.raw(f"    REJECT                   : {s.reject}")
+        self.logger.raw(f"[3] Avg wait time            : {s.avg_wait_time:.2f} sec")
+        self.logger.raw(DIV)
+        self.logger.raw(f"[4] P2P sent                 : {s.p2p_sent}")
+        self.logger.raw(f"    P2P received             : {s.p2p_received}")
+        self.logger.raw(f"    P2P queries              : {s.p2p_queries}")
+        self.logger.raw(f"[5] Tasks received           : {s.received}")
+        self.logger.raw(f"[6] Total elapsed time       : {self.clock.now():.2f} sec (System Clock)")
+        self.logger.raw(SEP)

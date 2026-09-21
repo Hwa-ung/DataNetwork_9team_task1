@@ -31,6 +31,12 @@ class NodeLogger:
     def warn(self, event: str, msg: str):
         self.log(event, "WARN", msg)
 
+    def raw(self, msg: str):
+        with self._lock:
+            print(msg)
+            self._fp.write(msg + "\n")
+            self._fp.flush()
+
     def close(self):
         with self._lock:
             self._fp.close()
