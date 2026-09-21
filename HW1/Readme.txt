@@ -108,18 +108,18 @@ HW#1 - 분산 Fault-Tolerant 키-값 저장소 (Distributed Fault-Tolerant KV St
 
   Windows PowerShell:
 
-    icacls "$HOME\.ssh\mykey.pem" /inheritance:r
-    icacls "$HOME\.ssh\mykey.pem" /grant:r "$($env:USERNAME):(R)"
+    icacls "$HOME\.ssh\HaEeee.pem" /inheritance:r
+    icacls "$HOME\.ssh\HaEeee.pem" /grant:r "$($env:USERNAME):(R)"
 
   macOS/Linux:
 
-    chmod 600 ~/.ssh/mykey.pem
+    chmod 600 ~/.ssh/HaEeee.pem
 
 4-5. SSH 접속 및 초기 설정
 
   로컬 PC 터미널:
 
-    ssh -i ~/.ssh/mykey.pem ubuntu@13.61.180.113
+    ssh -i ~/.ssh/HaEeee.pem ubuntu@13.61.180.113
     mkdir -p ~/hw1
 
 
@@ -128,7 +128,7 @@ HW#1 - 분산 Fault-Tolerant 키-값 저장소 (Distributed Fault-Tolerant KV St
 
 로컬 PC에서 EC2로 코드 전송
 
-  scp -i ~/.ssh/mykey.pem -r HW1/src HW1/scripts \
+  scp -i ~/.ssh/HaEeee.pem -r HW1/src HW1/scripts \
     ubuntu@13.61.180.113:~/hw1/
 
 결과: EC2에 ~/hw1/src와 ~/hw1/scripts가 생성됨
@@ -257,7 +257,7 @@ Master 로그 회수 (로컬 PC에서)
 
   Master 로그는 EC2에만 있으므로 로컬로 복사:
 
-    scp -i ~/.ssh/mykey.pem ubuntu@13.61.180.113:~/hw1/logs/Master.txt \
+    scp -i ~/.ssh/HaEeee.pem ubuntu@13.61.180.113:~/hw1/logs/Master.txt \
       ./HW1/logs/
 
 Worker 로그 회수
